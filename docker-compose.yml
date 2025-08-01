@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - dev
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "${ADMINER_PORT}:8080"
+    networks:
+      - dev
+
+  api:
+    build:
+      context: ./EmpleadosApi       # carpeta donde está tu proyecto .NET
+      dockerfile: Dockerfile       # tu Dockerfile para la API
+    restart: always
+    ports:
+      - "5000:5000"                # expone puerto 5000 localmente
+    environment:
+      - ConnectionStrings__MySqlConnection=server=mysql;port=3306;database=${MYSQL_DATABASE};user=${MYSQL_USER};password=${MYSQL_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      - dev
+
+volumes:
+  mysql_data:
+
+networks:
+  dev:
